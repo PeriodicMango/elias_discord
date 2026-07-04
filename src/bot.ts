@@ -17,7 +17,7 @@ import { handleDMCommand } from "../../../eliasCore/src/helpers/commandsDM.js";
 import { getAllToolDefinitions } from "../../../eliasCore/src/helpers/tools.js";
 import { processAttachments } from "../../../eliasCore/src/helpers/attachments.js";
 import { onUserMessage, getStatusPrompt, getCurrentStatus, setStatus, SLEEP_PREPARE_PROMPT, isSleepTrigger, isSleepHours } from "../../../eliasCore/src/helpers/status.js";
-import { getPersonaForChannel, isGroupChatChannel, getDmPersona, getGroupChatPersonas, getPersonaConfig } from "../../../eliasCore/src/helpers/channelRegistry.js";
+import { getPersonaForChannel, isGroupChatChannel, getDmPersona, getGroupChatPersonas } from "../../../eliasCore/src/helpers/channelRegistry.js";
 import { sendAsPersona } from "../../../eliasCore/src/helpers/webhookManager.js";
 import { buildStatusEmbed } from "../../../eliasCore/src/helpers/embedBuilder.js";
 import { parseMoodTag } from "../../../eliasCore/src/helpers/moodParser.js";

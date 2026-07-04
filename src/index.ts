@@ -7,7 +7,7 @@ import { startPhoneMonitor } from "../../../eliasCore/src/helpers/phoneMonitor.j
 import { startProactiveLoops } from "../../../eliasCore/src/helpers/proactive.js";
 import { catchUpMissedSummaries, startSummarizerLoop } from "../../../eliasCore/src/summarizer.js";
 import { initializeMcp, getMcpStatus } from "../../../eliasCore/src/helpers/mcp.js";
-import { rotateStatus, getCurrentStatus } from "../../../eliasCore/src/helpers/status.js";
+import { rotateStatus } from "../../../eliasCore/src/helpers/status.js";
 import { ActivityType, Client } from "discord.js";
 import { bootApps } from "../../../eliasCore/src/api/boot.js";
 
