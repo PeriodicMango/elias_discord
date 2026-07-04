@@ -3,11 +3,11 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import { createBot } from "./bot.js";
 import { DISCORD_TOKEN, PATHS, MCP_SERVERS, sharedPath } from "../../../eliasCore/src/config.js";
-import { startPhoneMonitor } from "./phoneMonitor.js";
-import { startProactiveLoops } from "./proactive.js";
+import { startPhoneMonitor } from "../../../eliasCore/src/helpers/phoneMonitor.js";
+import { startProactiveLoops } from "../../../eliasCore/src/helpers/proactive.js";
 import { catchUpMissedSummaries, startSummarizerLoop } from "../../../eliasCore/src/summarizer.js";
 import { initializeMcp, getMcpStatus } from "../../../eliasCore/src/helpers/mcp.js";
-import { rotateStatus, getCurrentStatus } from "./status.js";
+import { rotateStatus, getCurrentStatus } from "../../../eliasCore/src/helpers/status.js";
 import { ActivityType, Client } from "discord.js";
 import { bootApps } from "../../../eliasCore/src/api/boot.js";
 
@@ -77,7 +77,7 @@ async function main(): Promise<void> {
 
   client.once("clientReady", () => {
     // Ensure webhooks exist for all configured channels
-    import("./helpers/webhookManager.js")
+    import("../../../eliasCore/src/helpers/webhookManager.js")
       .then(({ ensureWebhooks }) => ensureWebhooks(client))
       .catch(() => {});
 

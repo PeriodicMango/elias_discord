@@ -10,17 +10,17 @@ import { getMasterId, getMasterTag, setMasterId } from "../../../eliasCore/src/h
 import { assemblePrompt, loadDynamicRules, loadPersonaNotebook, loadSoul, loadUserProfile } from "../../../eliasCore/src/prompt.js";
 import { appendDailyLogRaw, getRecentMemory, getSemanticKnowledge, getUserContext, timeString } from "../../../eliasCore/src/memory.js";
 import { chatDualPipeline } from "../../../eliasCore/src/llm.js";
-import { classifySender, ensureComplete, masterTitle, rewriteMentions, sendReply, shouldRespond } from "./discord.js";
+import { classifySender, ensureComplete, masterTitle, rewriteMentions, sendReply, shouldRespond } from "../../../eliasCore/src/helpers/discord.js";
 import { appendHistory, getHistory, pushHistoryMessage, tempHistoryPath } from "../../../eliasCore/src/helpers/history.js";
-import { handleInteraction, registerSlashCommands } from "./commands.js";
-import { handleDMCommand } from "./commandsDM.js";
+import { handleInteraction, registerSlashCommands } from "../../../eliasCore/src/helpers/commands.js";
+import { handleDMCommand } from "../../../eliasCore/src/helpers/commandsDM.js";
 import { getAllToolDefinitions } from "../../../eliasCore/src/helpers/tools.js";
-import { processAttachments } from "./attachments.js";
-import { onUserMessage, getStatusPrompt, getCurrentStatus, setStatus, SLEEP_PREPARE_PROMPT, isSleepTrigger, isSleepHours } from "./status.js";
-import { getPersonaForChannel, isGroupChatChannel, getDmPersona, getGroupChatPersonas, getPersonaConfig } from "./channelRegistry.js";
-import { sendAsPersona } from "./webhookManager.js";
-import { buildStatusEmbed } from "./embedBuilder.js";
-import { parseMoodTag } from "./moodParser.js";
+import { processAttachments } from "../../../eliasCore/src/helpers/attachments.js";
+import { onUserMessage, getStatusPrompt, getCurrentStatus, setStatus, SLEEP_PREPARE_PROMPT, isSleepTrigger, isSleepHours } from "../../../eliasCore/src/helpers/status.js";
+import { getPersonaForChannel, isGroupChatChannel, getDmPersona, getGroupChatPersonas, getPersonaConfig } from "../../../eliasCore/src/helpers/channelRegistry.js";
+import { sendAsPersona } from "../../../eliasCore/src/helpers/webhookManager.js";
+import { buildStatusEmbed } from "../../../eliasCore/src/helpers/embedBuilder.js";
+import { parseMoodTag } from "../../../eliasCore/src/helpers/moodParser.js";
 import { personaPath } from "../../../eliasCore/src/config.js";
 import { getPersonaTriggers } from "../../../eliasCore/src/helpers/personas.js";
 import type { ChatMessage } from "../../../eliasCore/src/llm.js";
@@ -34,7 +34,7 @@ async function readActivePersonaFallback(): Promise<string> {
   try {
     const fs = await import("node:fs/promises");
     const path = await import("node:path");
-    const { PATHS } = await import("./config.js");
+    const { PATHS } = await import("../../../eliasCore/src/config.js");
     const raw = await fs.readFile(path.join(PATHS.base, "data.json"), "utf8");
     return (JSON.parse(raw) as { activePersona?: string }).activePersona ?? "elias";
   } catch { return "elias"; }
