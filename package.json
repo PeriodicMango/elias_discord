@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Elias Discord Platform — Discord bot connection layer",
   "type": "module",
-  "main": "src/index.js",
   "scripts": {
       "start": "tsx src/index.ts",
       "test": "vitest run",
