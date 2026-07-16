@@ -1,2 +1,6 @@
 node_modules/
 dist/
+
+# Secrets & instance config
+.env
+channels.json

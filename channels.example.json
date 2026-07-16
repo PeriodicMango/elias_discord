@@ -1,0 +1,9 @@
+{
+  "personas": {},
+  "groupChat": {
+    "channelId": null,
+    "personas": [],
+    "enabled": false
+  },
+  "dmDefaultPersona": null
+}
