@@ -4,3 +4,6 @@ dist/
 # Secrets & instance config
 .env
 channels.json
+node_modules/
+dist/
+.env
