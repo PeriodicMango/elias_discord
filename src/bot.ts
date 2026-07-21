@@ -72,6 +72,16 @@ const timeMod = createTimeMod({
   label: "当前时间",
 });
 
+// ── Seed jiwen instances for existing personas ────────────────────────────
+for (const persona of personaManager.list()) {
+  try {
+    await jiwenManager.addInstance(persona.id);
+  } catch {
+    // already exists (e.g. persisted from previous run)
+  }
+}
+console.log(`[elias] jiwen instances: ${jiwenManager.list().map((i) => i.id).join(", ")}`);
+
 // ── Master bootstrap (A2) ─────────────────────────────────────────────────
 if (!authManager.masterClaimed) {
   console.log("[elias] claiming master with MASTER_SETUP_KEY…");
@@ -208,8 +218,8 @@ client.on("messageCreate", async (msg) => {
 
     appendHistory(userId, { role: "assistant", content: replyText });
 
-    // Jiwen mechanical feedback (connection was just fulfilled)
-    await jiwenManager.userReplied(persona);
+    // Jiwen mechanical feedback (J3: silence when no instance)
+    try { await jiwenManager.userReplied(persona); } catch { /* no instance */ }
   } catch (err) {
     if (err instanceof ModPreflightError) {
       replyText = `[${err.code}] mod(s) failed: ${err.failures.map((f) => f.mod).join(", ")}`;
