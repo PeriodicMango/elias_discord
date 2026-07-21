@@ -79,13 +79,10 @@ if (!authManager.masterClaimed) {
 }
 
 // ── Ensure the owner's Discord binding exists ─────────────────────────────
-// In production the master adds their Discord binding once via a setup step.
-// For now, a missing master binding is logged but not fatal — the first
-// message from the owner will route through the anonymous cold voice until
-// binding is added.
-if (!authManager.whois(`discord:${process.env.OWNER_DISCORD_ID ?? "0"}`)) {
-  console.log("[elias] master has no Discord binding yet — first message will be anonymous.");
-  console.log("[elias] add a binding with: await authManager.addBinding('master', 'discord:YOUR_ID')");
+const ownerDiscordId = `discord:${process.env.OWNER_DISCORD_ID ?? ""}`;
+if (ownerDiscordId !== "discord:" && !authManager.whois(ownerDiscordId)) {
+  await authManager.addBinding("master", ownerDiscordId); // bootstrap
+  console.log(`[elias] master bound to ${ownerDiscordId}`);
 }
 
 // ── Brain ─────────────────────────────────────────────────────────────────
@@ -123,7 +120,7 @@ const personaCmd = new SlashCommandBuilder()
       .setAutocomplete(true),
   );
 
-client.once("ready", async () => {
+client.once("clientReady", async () => {
   await client.application!.commands.set([personaCmd]);
   console.log(`[elias] online as ${client.user!.tag} in channel ${CHANNEL_ID}`);
 });
