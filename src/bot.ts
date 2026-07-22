@@ -1,8 +1,7 @@
-// ── Elias Discord Bot v3 — minimal rebuild: message pipe + 4 mods. ──────
+// ── Elias Discord Bot v3 — minimal rebuild: message pipe + mod registry. ──
 //
-// Mods are loaded dynamically via the workspace-level loader — adding a
-// new mod means dropping a folder into ~/elias/mods/. Nobody reopens
-// this file.
+// Mods live in ~/elias/mods/ — drag-and-drop install, like Nexus Mods.
+// This file imports ZERO mod packages. Adding a mod = drop folder → restart.
 // ---------------------------------------------------------------------------
 import "dotenv/config";
 import {
@@ -22,9 +21,6 @@ import {
 } from "@periodicmango/elias";
 import { loadAllMods } from "../../mod-loader/loader/src/loadAllMods.js";
 import { getHistory, appendHistory } from "./history.js";
-import type { PersonaManager } from "persona-mod";
-import type { JiwenManager } from "jiwen-mod";
-import type { AuthManager } from "auth-mod";
 
 // ── Config from environment ────────────────────────────────────────────────
 const TOKEN = process.env.DISCORD_TOKEN!;
@@ -40,57 +36,40 @@ const LLM_MODEL = process.env.LLM_MODEL!;
 // ── Per-user persona sticky state ─────────────────────────────────────────
 const personaMap = new Map<string, string>();
 
-// ── Startup: load all mods from workspace registry ─────────────────────────
+// ── Startup: load all mods from workspace mod registry ─────────────────────
 console.log("[elias] loading mods…");
 
 const loadedMods = await loadAllMods("../../mods");
 
-const personaManager = loadedMods.find((m) => m.name === "persona") as PersonaManager | undefined;
-const authManager = loadedMods.find((m) => m.name === "auth") as AuthManager | undefined;
-const jiwenManager = loadedMods.find((m) => m.name === "jiwen") as JiwenManager | undefined;
+// Resolve concrete mod instances by name (no package imports — Nexus Mods style)
+const pm = loadedMods.find((m) => m.name === "persona") as Record<string, unknown> | undefined;
+const am = loadedMods.find((m) => m.name === "auth") as Record<string, unknown> | undefined;
+const jm = loadedMods.find((m) => m.name === "jiwen") as Record<string, unknown> | undefined;
 
-if (!personaManager) throw new Error("[elias] persona-mod is required.");
-if (!authManager) console.warn("[elias] auth-mod not loaded — running without authorization.");
-if (!jiwenManager) console.warn("[elias] jiwen-mod not loaded — running without emotion engine.");
-
-// ── Post-load wiring ──────────────────────────────────────────────────────
-// auth needs persona info for master title injection
-if (authManager) {
-  // Patch getMasterTitle on the already-loaded auth instance (its preflight
-  // reads getMasterTitle on every call, so we just need it on the object).
-  const origPreflight = authManager.preflight.bind(authManager);
-  authManager.preflight = async (ctx) => {
-    const persona = ctx.meta.persona;
-    try {
-      const m = personaManager!.get(persona).meta;
-      const title = (typeof m.master_title === "string" && m.master_title) || "主人";
-      // inject master title into auth's injected text
-      const result = await origPreflight(ctx);
-      return { text: result.text };
-    } catch {
-      return origPreflight(ctx);
-    }
-  };
-}
+if (!pm) throw new Error("[elias] persona-mod is required.");
+if (!am) console.warn("[elias] auth-mod not loaded — running without authorization.");
+if (!jm) console.warn("[elias] jiwen-mod not loaded — running without emotion engine.");
 
 const timeMod = createTimeMod({ timeZone: TZ, locale: LOCALE, label: "当前时间" });
 
+// ── Post-load wiring ──────────────────────────────────────────────────────
 // Seed jiwen instances for loaded personas
-if (jiwenManager) {
-  for (const p of personaManager.list()) {
-    try { await jiwenManager.addInstance(p.id); } catch { /* already exists */ }
+if (jm) {
+  const personas = (pm.list as () => Array<{ id: string }>)();
+  for (const p of personas) {
+    try { await (jm.addInstance as (id: string) => Promise<void>)(p.id); } catch { /* exists */ }
   }
-  console.log(`[elias] jiwen instances: ${jiwenManager.list().map((i) => i.id).join(", ")}`);
+  console.log(`[elias] jiwen instances: ${((jm.list as () => Array<{ id: string }>)()).map((i) => i.id).join(", ")}`);
 }
 
 // Master bootstrap
-if (authManager && !authManager.masterClaimed) {
+if (am && !(am.masterClaimed as boolean)) {
   console.log("[elias] claiming master with MASTER_SETUP_KEY…");
-  await authManager.claimSetupKey(MASTER_KEY, "漓琊");
+  await (am.claimSetupKey as (key: string, name: string) => Promise<void>)(MASTER_KEY, "漓琊");
 }
 const ownerDiscordId = `discord:${process.env.OWNER_DISCORD_ID ?? ""}`;
-if (authManager && ownerDiscordId !== "discord:" && !authManager.whois(ownerDiscordId)) {
-  await authManager.addBinding("master", ownerDiscordId);
+if (am && ownerDiscordId !== "discord:" && !(am.whois as (uid: string) => unknown)(ownerDiscordId)) {
+  await (am.addBinding as (vid: string, binding: string) => Promise<void>)("master", ownerDiscordId);
   console.log(`[elias] master bound to ${ownerDiscordId}`);
 }
 
@@ -128,8 +107,8 @@ client.on("interactionCreate", async (interaction) => {
   if (interaction.isAutocomplete()) {
     const focused = interaction.options.getFocused(true);
     if (focused.name !== "name") return;
-    const choices = personaManager!
-      .list()
+    const list = (pm.list as () => Array<{ id: string; displayName: string }>)();
+    const choices = list
       .filter((p) => p.id.includes(focused.value))
       .slice(0, 20)
       .map((p) => ({ name: `${p.displayName} (${p.id})`, value: p.id }));
@@ -141,7 +120,7 @@ client.on("interactionCreate", async (interaction) => {
   if (cmd.commandName !== "persona") return;
 
   const name = cmd.options.getString("name", true);
-  try { personaManager!.get(name); } catch {
+  try { (pm.get as (id: string) => unknown)(name); } catch {
     await cmd.reply({ content: `persona "${name}" 不存在。`, ephemeral: true });
     return;
   }
@@ -168,7 +147,7 @@ client.on("messageCreate", async (msg) => {
     const reply = await getBrain().chat({
       content: msg.content,
       meta: { persona, userId },
-      allowedTools: authManager?.toolsFor(userId),
+      allowedTools: am ? (am.toolsFor as (uid: string) => string[] | undefined)(userId) : undefined,
       history,
     });
 
@@ -181,7 +160,7 @@ client.on("messageCreate", async (msg) => {
     }
 
     appendHistory(userId, { role: "assistant", content: replyText });
-    try { await jiwenManager?.userReplied(persona); } catch { /* no instance */ }
+    if (jm) try { await (jm.userReplied as (id: string) => Promise<void>)(persona); } catch { /* */ }
   } catch (err) {
     replyText = makeErrorReply(err);
     await msg.channel.send(replyText);
@@ -209,7 +188,7 @@ function splitLongMessage(text: string): string[] {
 
 function makeErrorReply(err: unknown): string {
   if (err instanceof ModPreflightError)
-    return `[${err.code}] mod(s) failed: ${err.failures.map((f) => f.mod).join(", ")}`;
+    return `[${err.code}] mod(s) failed: ${err.failures.map((f: { mod: string }) => f.mod).join(", ")}`;
   if (err instanceof LlmHttpError) return `[${err.code}] LLM returned HTTP ${err.status}`;
   if (err instanceof LlmTimeoutError) return `[${err.code}] LLM request timed out`;
   if (err instanceof EliasError) return `[EliasError] ${(err as EliasError).message}`;

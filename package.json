@@ -2,7 +2,7 @@
   "name": "elias-discord",
   "version": "3.0.0",
   "private": true,
-  "description": "Elias Discord bot — minimal runtime: message pipe + 4 mods",
+  "description": "Elias Discord bot — minimal runtime: message pipe + mod registry (Nexus Mods-style drag-and-drop)",
   "type": "module",
   "main": "src/bot.ts",
   "scripts": {
@@ -12,11 +12,8 @@
   },
   "dependencies": {
     "@periodicmango/elias": "file:../../eliasCore",
-    "auth-mod": "file:../../mod-loader/auth-mod",
     "discord.js": "^14.16.3",
-    "dotenv": "^16.4.5",
-    "jiwen-mod": "file:../../mod-loader/jiwen-mod",
-    "persona-mod": "file:../../mod-loader/persona-mod"
+    "dotenv": "^16.4.5"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
