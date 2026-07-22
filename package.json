@@ -12,11 +12,11 @@
   },
   "dependencies": {
     "@periodicmango/elias": "file:../../eliasCore",
-    "auth-mod": "file:../../plugins/auth-mod",
+    "auth-mod": "file:../../mod-loader/auth-mod",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
-    "jiwen-mod": "file:../../plugins/jiwen-mod",
-    "persona-mod": "file:../../plugins/persona-mod"
+    "jiwen-mod": "file:../../mod-loader/jiwen-mod",
+    "persona-mod": "file:../../mod-loader/persona-mod"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
